@@ -1,5 +1,11 @@
 # ProposalForge
 
+## ✨ Preview
+
+![ProposalForge Preview](./assets/preview1.png)
+
+*Elegant professional proposal generated with ProposalForge*
+
 **The Most Elegant & Intelligent Proposal Generator**
 
 > Proposals That Win Clients — Free, Open Source, No Login Required
