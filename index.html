@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en" class="dark" x-data="proposalForge()" x-init="init()">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProposalForge — Proposals That Win Clients</title>
+  <meta name="description" content="The most elegant and intelligent proposal generator for freelancers, agencies, and small businesses." />
+
+  <!-- Fonts: Cormorant for display, DM Sans for body, DM Mono for code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- jsPDF + html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css" />
+
+
+   <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="assets/icons/icon.svg" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Cormorant Garamond', 'Georgia', 'serif'],
+            body:    ['DM Sans', 'system-ui', 'sans-serif'],
+            mono:    ['DM Mono', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+</head>
+
+<body
+  class="font-body antialiased transition-colors duration-300 flex flex-col min-h-screen"
+  :class="darkMode ? 'dark bg-[#080810] text-stone-100' : 'bg-[#f7f5f0] text-stone-900'"
+>
+
+  <!-- ── Ambient background blobs ── -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+    <div class="ambient-blob blob-1"
+         :style="`background:radial-gradient(circle,${accentColor}28 0%,transparent 70%)`"></div>
+    <div class="ambient-blob blob-2"
+         :style="`background:radial-gradient(circle,${accentColor}12 0%,transparent 70%)`"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════════ -->
+  <header class="sticky top-0 z-50 header-glass border-b"
+          :class="darkMode ? 'border-white/[0.05]' : 'border-black/[0.06]'">
+    <div class="max-w-screen-2xl mx-auto px-5 py-3.5 flex items-center justify-between gap-4">
+
+      <!-- Logo mark + wordmark -->
+      <button @click="currentView = 'landing'" class="flex items-center gap-3 group">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm transition-transform group-hover:scale-105"
+             :style="`background:${accentColor}`">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+            <path d="M2 3.5h12M2 7h8.5M2 10.5h10.5M2 14h6" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="text-left">
+          <div class="font-display text-[1.15rem] font-semibold leading-none tracking-tight"
+               :class="darkMode ? 'text-white' : 'text-stone-900'">ProposalForge</div>
+          <div class="text-[10px] tracking-[0.12em] uppercase mt-0.5 hidden sm:block"
+               :class="darkMode ? 'text-white/30' : 'text-stone-400'">Proposals That Win Clients</div>
+        </div>
+      </button>
+
+      <!-- Right nav -->
+      <nav class="flex items-center gap-1">
+
+        <!-- Saved count -->
+        <button @click="showSavedModal = true" class="btn-ghost hidden sm:flex items-center gap-2"
+                title="Saved Proposals">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M3 1h8l2 2v11a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1z"/>
+            <path d="M5 1v4h6V1"/>
+          </svg>
+          <span class="text-[13px]" x-text="`Saved (${savedProposals.length})`"></span>
+        </button>
+
+        <!-- GitHub -->
+        <a href="https://github.com/proposalforge/proposalforge" target="_blank" rel="noopener"
+           class="btn-ghost" title="View on GitHub">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+          </svg>
+        </a>
+
+        <!-- ★ THEME TOGGLE — fixed: correct icon per mode ★ -->
+        <button @click="toggleTheme()"
+                class="btn-ghost relative w-9 h-9 flex items-center justify-center"
+                :title="darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+          <!-- Sun: shown in dark mode → clicking goes light -->
+          <svg x-show="darkMode"
+               width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          <!-- Moon: shown in light mode → clicking goes dark -->
+          <svg x-show="!darkMode"
+               width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"/>
+          </svg>
+        </button>
+
+        <!-- Export PDF — only in builder view -->
+        <button
+          @click="exportPDF()"
+          x-show="currentView === 'builder'"
+          class="btn-accent ml-1 flex items-center gap-2"
+          :style="`background:${accentColor}`"
+          :class="isExporting ? 'opacity-60 cursor-wait' : ''"
+          :disabled="isExporting"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9">
+            <path d="M8 1v10M4 7l4 4 4-4M2 14h12"/>
+          </svg>
+          <span class="text-[13px] font-medium" x-text="isExporting ? 'Exporting…' : 'Export PDF'"></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════
+       LANDING VIEW
+  ══════════════════════════════════════════════ -->
+  <main x-show="currentView === 'landing'"
+        class="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-20">
+
+    <!-- Hero text -->
+    <div class="text-center max-w-3xl animate-fade-in-up">
+      <!-- Status pill -->
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[11px] tracking-[0.1em] uppercase mb-10 badge-pill"
+           :class="darkMode ? 'bg-white/[0.06] text-white/50 border border-white/[0.08]' : 'bg-black/[0.05] text-black/50 border border-black/[0.06]'">
+        <span class="w-1.5 h-1.5 rounded-full animate-pulse inline-block" :style="`background:${accentColor}`"></span>
+        Free &amp; Open Source &nbsp;·&nbsp; No Login Required
+      </div>
+
+      <!-- Display headline -->
+      <h1 class="font-display leading-[1.04] tracking-tight mb-7"
+          style="font-size:clamp(3.2rem,9vw,6.5rem)">
+        <span :class="darkMode ? 'text-white' : 'text-stone-900'">Proposals</span><br/>
+        <em class="italic font-medium" :style="`color:${accentColor}`">That Win</em><br/>
+        <span :class="darkMode ? 'text-white' : 'text-stone-900'">Clients</span>
+      </h1>
+
+      <p class="text-[1.05rem] leading-relaxed max-w-lg mx-auto mb-12"
+         :class="darkMode ? 'text-white/50' : 'text-stone-500'">
+        Craft breathtaking proposals in minutes — not hours. AI-powered smart builder,
+        luxury templates, live preview, and one-click PDF export.
+      </p>
+
+      <!-- CTA buttons -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button @click="startNewProposal()"
+                class="btn-primary group gap-3"
+                :style="`background:${accentColor}`">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 1v14M1 8h14"/>
+          </svg>
+          Create New Proposal
+          <svg class="opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-200"
+               width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 8h10M9 4l4 4-4 4"/>
+          </svg>
+        </button>
+
+        <button @click="openSmartBuilder()" class="btn-outline gap-3">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M6 1l1.5 3.5L11 6l-3.5 1.5L6 11l-1.5-3.5L1 6l3.5-1.5L6 1z"/>
+            <path d="M13 9l.75 1.75L15.5 11l-1.75.75L13 13.5l-.75-1.75L10.5 11l1.75-.75L13 9z"/>
+          </svg>
+          Smart Builder (AI)
+        </button>
+      </div>
+    </div>
+
+    <!-- Feature pills -->
+    <div class="flex flex-wrap justify-center gap-2.5 mt-14 max-w-xl animate-fade-in-up"
+         style="animation-delay:0.18s">
+      <template x-for="feat in landingFeatures" :key="feat">
+        <span class="text-[11.5px] px-3 py-1.5 rounded-full"
+              :class="darkMode ? 'bg-white/[0.05] text-white/45' : 'bg-black/[0.05] text-black/45'"
+              x-text="feat"></span>
+      </template>
+    </div>
+
+    <!-- Demo proposal card -->
+    <div class="mt-14 w-full max-w-2xl animate-fade-in-up" style="animation-delay:0.32s">
+      <div class="preview-card-demo rounded-2xl overflow-hidden border"
+           :class="darkMode ? 'bg-white/[0.03] border-white/[0.07]' : 'bg-white/70 border-black/[0.07]'"
+           :style="`box-shadow: 0 20px 60px ${accentColor}18`">
+        <div class="p-7 sm:p-9">
+          <!-- Card header -->
+          <div class="flex items-start justify-between mb-6">
+            <div>
+              <p class="text-[10px] tracking-[0.14em] uppercase mb-1.5"
+                 :class="darkMode ? 'text-white/35' : 'text-black/35'">Business Proposal</p>
+              <p class="font-display text-2xl font-semibold leading-snug"
+                 :class="darkMode ? 'text-white' : 'text-stone-900'">Website Redesign &amp; Brand Refresh</p>
+              <p class="text-[13px] mt-1.5"
+                 :class="darkMode ? 'text-white/40' : 'text-stone-500'">Prepared for Acme Corp · April 2026</p>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <p class="text-[10px] tracking-widest uppercase mb-1"
+                 :class="darkMode ? 'text-white/35' : 'text-black/35'">Total Value</p>
+              <p class="font-display text-3xl font-semibold" :style="`color:${accentColor}`">$12,500</p>
+            </div>
+          </div>
+          <!-- Packages row -->
+          <div class="grid grid-cols-3 gap-3">
+            <template x-for="pkg in demoPackages" :key="pkg.name">
+              <div class="p-4 rounded-xl text-center transition-all"
+                   :class="!pkg.featured ? (darkMode ? 'bg-white/[0.04]' : 'bg-black/[0.03]') : ''"
+                   :style="pkg.featured ? `background:${accentColor}18; border:1.5px solid ${accentColor}40; box-shadow:0 4px 16px ${accentColor}20` : ''">
+                <p class="text-[10.5px] mb-1.5"
+                   :class="darkMode ? 'text-white/40' : 'text-black/40'"
+                   x-text="pkg.name"></p>
+                <p class="font-display text-xl font-semibold"
+                   :class="pkg.featured ? '' : (darkMode ? 'text-white/80' : 'text-stone-700')"
+                   :style="pkg.featured ? `color:${accentColor}` : ''"
+                   x-text="pkg.price"></p>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══════════════════════════════════════════════
+       BUILDER VIEW
+  ══════════════════════════════════════════════ -->
+  <div x-show="currentView === 'builder'"
+       class="relative z-10 flex flex-col flex-1 overflow-hidden"
+       style="height:calc(100vh - 57px)">
+
+    <!-- Builder sub-bar -->
+    <div class="flex items-center justify-between px-5 py-2.5 border-b gap-4 flex-wrap flex-shrink-0"
+         :class="darkMode ? 'border-white/[0.05] bg-[#080810]/80' : 'border-black/[0.05] bg-[#f7f5f0]/80'"
+         style="backdrop-filter:blur(12px)">
+      <div class="flex items-center gap-3 min-w-0">
+        <button @click="currentView='landing'" class="btn-ghost text-[13px] gap-1.5 flex-shrink-0">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 3L5 8l5 5"/>
+          </svg>
+          Back
+        </button>
+        <div class="w-px h-4 flex-shrink-0" :class="darkMode ? 'bg-white/15' : 'bg-black/12'"></div>
+        <input type="text" x-model="proposal.title"
+               @input="debouncedPreviewUpdate()"
+               placeholder="Untitled Proposal"
+               class="bg-transparent font-display text-[1.05rem] font-medium border-none outline-none min-w-0 truncate w-40 sm:w-64"
+               :class="darkMode ? 'text-white placeholder-white/25' : 'text-stone-900 placeholder-stone-400'" />
+      </div>
+
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <!-- Mobile edit/preview toggle -->
+        <div class="flex sm:hidden rounded-lg overflow-hidden border"
+             :class="darkMode ? 'border-white/10' : 'border-black/10'">
+          <button @click="mobileTab='editor'" class="text-xs px-3 py-1.5 transition-colors"
+                  :class="mobileTab==='editor' ? 'text-white' : (darkMode ? 'text-white/40' : 'text-stone-500')"
+                  :style="mobileTab==='editor' ? `background:${accentColor}` : ''">Edit</button>
+          <button @click="mobileTab='preview'" class="text-xs px-3 py-1.5 transition-colors"
+                  :class="mobileTab==='preview' ? 'text-white' : (darkMode ? 'text-white/40' : 'text-stone-500')"
+                  :style="mobileTab==='preview' ? `background:${accentColor}` : ''">Preview</button>
+        </div>
+
+        <button @click="saveProposal()" class="btn-ghost text-[13px] gap-1.5">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M3 1h8l2 2v11a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1z"/>
+            <path d="M5 1v4h6V1"/>
+          </svg>
+          <span x-text="saveStatus"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Two-column layout -->
+    <div class="flex flex-1 overflow-hidden">
+
+      <!-- ═══ LEFT: Editor ═══ -->
+      <div class="flex flex-col overflow-hidden scrollbar-thin"
+           :class="[
+             darkMode ? 'bg-[#080810]' : 'bg-[#f7f5f0]',
+             mobileTab === 'preview' ? 'hidden sm:flex sm:flex-col' : 'flex flex-col'
+           ]"
+           style="width:48%; min-width:340px; border-right:1px solid">
+        <!-- tab nav -->
+        <div class="flex border-b flex-shrink-0 px-3 gap-0.5 sticky top-0 z-10"
+             :class="darkMode ? 'border-white/[0.05] bg-[#080810]' : 'border-black/[0.05] bg-[#f7f5f0]'">
+          <template x-for="tab in editorTabs" :key="tab.id">
+            <button @click="activeTab = tab.id"
+                    class="editor-tab text-[12.5px] py-3 px-3.5 border-b-2 transition-all"
+                    :class="activeTab === tab.id
+                      ? 'font-semibold'
+                      : (darkMode ? 'text-white/40 border-transparent hover:text-white/60' : 'text-stone-400 border-transparent hover:text-stone-600')"
+                    :style="activeTab === tab.id ? `color:${accentColor}; border-color:${accentColor}` : ''"
+                    x-text="tab.label">
+            </button>
+          </template>
+        </div>
+
+        <!-- Scrollable content -->
+        <div class="flex-1 overflow-y-auto scrollbar-thin">
+
+          <!-- ─ TAB: Details ─ -->
+          <div x-show="activeTab === 'details'" class="p-5 space-y-4 animate-tab-in">
+            <div class="section-card">
+              <p class="section-label mb-4">Client Information</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="field-group">
+                  <label class="field-label">Client Name / Company</label>
+                  <input type="text" x-model="proposal.client.name" placeholder="Acme Corporation"
+                         class="field-input" :class="darkMode ? 'dark-input' : 'light-input'"
+                         @input="debouncedPreviewUpdate()" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Client Email</label>
+                  <input type="email" x-model="proposal.client.email" placeholder="contact@acme.com"
+                         class="field-input" :class="darkMode ? 'dark-input' : 'light-input'" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Project Title</label>
+                  <input type="text" x-model="proposal.title" placeholder="Website Redesign Project"
+                         class="field-input" :class="darkMode ? 'dark-input' : 'light-input'"
+                         @input="debouncedPreviewUpdate()" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Proposal Date</label>
+                  <input type="date" x-model="proposal.date"
+                         class="field-input" :class="darkMode ? 'dark-input' : 'light-input'" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Valid Until</label>
+                  <input type="date" x-model="proposal.validUntil"
+                         class="field-input" :class="darkMode ? 'dark-input' : 'light-input'" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Budget Range</label>
+                  <input type="text" x-model="proposal.client.budget" placeholder="$10,000 – $15,000"
+                         class="field-input" :class="darkMode ? 'dark-input' : 'light-input'"
+                         @input="debouncedPreviewUpdate()" />
+                </div>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <p class="section-label mb-4">Your Company</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="field-group">
+                  <label class="field-label">Your Name / Company</label>
+                  <input type="text" x-model="proposal.sender.name" placeholder="Studio Nova"
+                         class="field-input" :class="darkMode ? 'dark-input' : 'light-input'"
+                         @input="debouncedPreviewUpdate()" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Your Email</label>
+                  <input type="email" x-model="proposal.sender.email" placeholder="hello@studionova.com"
+                         class="field-input" :class="darkMode ? 'dark-input' : 'light-input'" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Website</label>
+                  <input type="url" x-model="proposal.sender.website" placeholder="studionova.com"
+                         class="field-input" :class="darkMode ? 'dark-input' : 'light-input'" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Phone</label>
+                  <input type="tel" x-model="proposal.sender.phone" placeholder="+1 (555) 000-0000"
+                         class="field-input" :class="darkMode ? 'dark-input' : 'light-input'" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ─ TAB: Content ─ -->
+          <div x-show="activeTab === 'content'" class="p-5 space-y-4 animate-tab-in">
+
+            <!-- AI prompt card -->
+            <div class="rounded-xl p-4 border transition-all"
+                 :class="darkMode ? 'border-white/[0.07] bg-white/[0.025]' : 'border-black/[0.07] bg-white/70'"
+                 :style="`border-color:${accentColor}30`">
+              <div class="flex items-start gap-3">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                     :style="`background:${accentColor}1a`">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                       stroke="currentColor" stroke-width="1.6" :style="`color:${accentColor}`">
+                    <path d="M6 1l1.5 3.5L11 6l-3.5 1.5L6 11l-1.5-3.5L1 6l3.5-1.5L6 1z"/>
+                    <path d="M13 9l.75 1.75L15.5 11l-1.75.75L13 13.5l-.75-1.75L10.5 11l1.75-.75L13 9z"/>
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium text-[13.5px] mb-0.5">Smart AI Builder</p>
+                  <p class="text-[12px] opacity-50 mb-3">Paste your project brief → AI generates a complete professional proposal instantly.</p>
+                  <button @click="openSmartBuilder()"
+                          class="text-[12.5px] font-semibold px-3.5 py-1.5 rounded-lg text-white transition-all hover:brightness-110"
+                          :style="`background:${accentColor}`">
+                    Generate with AI →
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <p class="section-label mb-3">Introduction / Executive Summary</p>
+              <textarea x-model="proposal.sections.intro" @input="debouncedPreviewUpdate()"
+                        rows="5" placeholder="Write a compelling introduction that connects with the client's goals…"
+                        class="field-input mt-1 resize-none leading-relaxed"
+                        :class="darkMode ? 'dark-input' : 'light-input'"></textarea>
+            </div>
+
+            <div class="section-card">
+              <p class="section-label mb-3">Scope of Work</p>
+              <textarea x-model="proposal.sections.scope" @input="debouncedPreviewUpdate()"
+                        rows="6" placeholder="• Discovery — Research, stakeholder interviews, competitor analysis&#10;• Design — Wireframes, UI mockups, design system&#10;• Development — Frontend, backend, integrations"
+                        class="field-input mt-1 resize-none leading-relaxed"
+                        :class="darkMode ? 'dark-input' : 'light-input'"></textarea>
+              <p class="text-[11px] mt-2 opacity-40">
+                Tip: Use <code class="font-mono">•</code> bullets with <code class="font-mono">Title — Description</code> for enhanced rendering.
+              </p>
+            </div>
+
+            <div class="section-card">
+              <p class="section-label mb-3">Project Timeline</p>
+              <textarea x-model="proposal.sections.timeline" @input="debouncedPreviewUpdate()"
+                        rows="5" placeholder="Week 1: Kickoff & Discovery&#10;Week 2–3: Design & Prototyping&#10;Week 4–5: Development&#10;Week 6: QA & Launch"
+                        class="field-input mt-1 resize-none font-mono text-[13px] leading-relaxed"
+                        :class="darkMode ? 'dark-input' : 'light-input'"></textarea>
+            </div>
+
+            <div class="section-card">
+              <p class="section-label mb-3">Terms &amp; Next Steps</p>
+              <textarea x-model="proposal.sections.terms" @input="debouncedPreviewUpdate()"
+                        rows="4" placeholder="Payment terms, revision policy, how to accept this proposal…"
+                        class="field-input mt-1 resize-none leading-relaxed"
+                        :class="darkMode ? 'dark-input' : 'light-input'"></textarea>
+            </div>
+          </div>
+
+          <!-- ─ TAB: Pricing ─ -->
+          <div x-show="activeTab === 'pricing'" class="p-5 space-y-4 animate-tab-in">
+
+            <!-- Packages -->
+            <div class="section-card">
+              <div class="flex items-center justify-between mb-4">
+                <p class="section-label">Pricing Packages</p>
+                <button @click="addPackage()" class="btn-ghost text-[12px] gap-1">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M6 1v10M1 6h10"/>
+                  </svg>
+                  Add
+                </button>
+              </div>
+              <div class="space-y-3">
+                <template x-for="(pkg, idx) in proposal.packages" :key="idx">
+                  <div class="rounded-xl p-4 border transition-all"
+                       :class="darkMode ? 'border-white/[0.07] bg-white/[0.02]' : 'border-black/[0.07] bg-white/60'"
+                       :style="pkg.featured ? `border-color:${accentColor}44;background:${accentColor}06` : ''">
+                    <div class="flex items-center gap-2 mb-3">
+                      <input type="text" x-model="pkg.name" placeholder="Package name"
+                             class="flex-1 bg-transparent border-none outline-none font-semibold text-[13.5px]"
+                             :class="darkMode ? 'text-white' : 'text-stone-900'"
+                             @input="calcTotals()" />
+                      <button @click="pkg.featured = !pkg.featured; calcTotals()"
+                              class="text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all whitespace-nowrap"
+                              :class="!pkg.featured ? (darkMode ? 'bg-white/5 text-white/40' : 'bg-black/5 text-stone-400') : 'text-white'"
+                              :style="pkg.featured ? `background:${accentColor}` : ''">
+                        ★ Recommended
+                      </button>
+                      <button @click="removePackage(idx)" class="opacity-30 hover:opacity-70 transition-opacity p-1">
+                        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6">
+                          <path d="M2 4h10M5 4V2h4v2M5.5 7v4M8.5 7v4M3 4l.8 8h6.4l.8-8"/>
+                        </svg>
+                      </button>
+                    </div>
+                    <textarea x-model="pkg.description" placeholder="What's included…" rows="2"
+                              class="field-input resize-none text-[12.5px] mb-3"
+                              :class="darkMode ? 'dark-input' : 'light-input'"
+                              @input="debouncedPreviewUpdate()"></textarea>
+                    <div class="flex gap-3">
+                      <div class="flex-1">
+                        <label class="field-label">Price ($)</label>
+                        <input type="number" x-model.number="pkg.price" @input="calcTotals()"
+                               class="field-input" :class="darkMode ? 'dark-input' : 'light-input'" />
+                      </div>
+                      <div class="flex-1">
+                        <label class="field-label">Duration</label>
+                        <input type="text" x-model="pkg.duration" placeholder="e.g. 6 weeks"
+                               class="field-input" :class="darkMode ? 'dark-input' : 'light-input'" />
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Line Items -->
+            <div class="section-card">
+              <div class="flex items-center justify-between mb-4">
+                <p class="section-label">Line Items (Optional)</p>
+                <button @click="addLineItem()" class="btn-ghost text-[12px] gap-1">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M6 1v10M1 6h10"/>
+                  </svg>
+                  Add
+                </button>
+              </div>
+              <div class="space-y-2">
+                <template x-for="(item, idx) in proposal.lineItems" :key="idx">
+                  <div class="flex items-center gap-2">
+                    <input type="text" x-model="item.name" placeholder="Service or deliverable"
+                           class="flex-1 field-input text-[13px]" :class="darkMode ? 'dark-input' : 'light-input'" />
+                    <input type="number" x-model.number="item.qty" placeholder="Qty"
+                           class="w-16 field-input text-[13px] text-center" :class="darkMode ? 'dark-input' : 'light-input'"
+                           @input="calcTotals()" />
+                    <input type="number" x-model.number="item.price" placeholder="Rate"
+                           class="w-24 field-input text-[13px]" :class="darkMode ? 'dark-input' : 'light-input'"
+                           @input="calcTotals()" />
+                    <span class="w-20 text-right text-[13px] font-mono opacity-60 flex-shrink-0"
+                          x-text="formatCurrency(item.qty * item.price)"></span>
+                    <button @click="removeLineItem(idx)" class="opacity-30 hover:opacity-70 transition-opacity flex-shrink-0 p-1">
+                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6">
+                        <path d="M2 4h10M5 4V2h4v2M5.5 7v4M8.5 7v4M3 4l.8 8h6.4l.8-8"/>
+                      </svg>
+                    </button>
+                  </div>
+                </template>
+              </div>
+
+              <!-- Totals -->
+              <div class="mt-5 pt-4 border-t space-y-2"
+                   :class="darkMode ? 'border-white/[0.06]' : 'border-black/[0.07]'">
+                <div class="flex justify-between text-[13px] opacity-60">
+                  <span>Subtotal</span>
+                  <span class="font-mono" x-text="formatCurrency(proposal.totals.subtotal)"></span>
+                </div>
+                <div class="flex items-center justify-between text-[13px] opacity-60">
+                  <div class="flex items-center gap-2">
+                    <span>Tax</span>
+                    <input type="number" x-model.number="proposal.taxRate" @input="calcTotals()"
+                           class="w-14 bg-transparent border-b text-[12px] text-center outline-none"
+                           :class="darkMode ? 'border-white/20' : 'border-black/15'" />
+                    <span class="opacity-50">%</span>
+                  </div>
+                  <span class="font-mono" x-text="formatCurrency(proposal.totals.tax)"></span>
+                </div>
+                <div class="flex items-center justify-between text-[13px] opacity-60">
+                  <div class="flex items-center gap-2">
+                    <span>Discount</span>
+                    <input type="number" x-model.number="proposal.discount" @input="calcTotals()"
+                           class="w-16 bg-transparent border-b text-[12px] text-center outline-none"
+                           :class="darkMode ? 'border-white/20' : 'border-black/15'" />
+                    <span class="opacity-50">$</span>
+                  </div>
+                  <span class="font-mono" x-text="`-${formatCurrency(proposal.discount)}`"></span>
+                </div>
+                <div class="flex justify-between font-semibold text-[15px] pt-2.5 border-t"
+                     :class="darkMode ? 'border-white/10' : 'border-black/10'">
+                  <span>Total</span>
+                  <span class="font-display text-xl font-semibold"
+                        :style="`color:${accentColor}`"
+                        x-text="formatCurrency(proposal.totals.grand)"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ─ TAB: Style ─ -->
+          <div x-show="activeTab === 'style'" class="p-5 space-y-4 animate-tab-in">
+
+            <!-- Template grid -->
+            <div class="section-card">
+              <p class="section-label mb-4">Proposal Template</p>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <template x-for="tmpl in templates" :key="tmpl.id">
+                  <button @click="proposal.template = tmpl.id; debouncedPreviewUpdate()"
+                          class="rounded-xl p-3 border-2 text-left transition-all hover:scale-[1.02] active:scale-100"
+                          :class="proposal.template !== tmpl.id ? (darkMode ? 'border-white/[0.08] bg-white/[0.02]' : 'border-black/[0.07] bg-white/60') : ''"
+                          :style="proposal.template === tmpl.id ? `border-color:${accentColor};background:${accentColor}12` : ''">
+                    <div class="w-full aspect-video rounded-lg mb-2.5 flex items-center justify-center text-2xl"
+                         :style="`background:${tmpl.bg}`" x-text="tmpl.icon"></div>
+                    <p class="text-[12.5px] font-semibold" x-text="tmpl.name"></p>
+                    <p class="text-[11px] opacity-40 mt-0.5" x-text="tmpl.vibe"></p>
+                  </button>
+                </template>
+              </div>
+            </div>
+
+            <!-- Accent color -->
+            <div class="section-card">
+              <p class="section-label mb-4">Accent Color</p>
+              <div class="flex flex-wrap items-center gap-3">
+                <template x-for="color in accentColors" :key="color">
+                  <button @click="accentColor = color; proposal.accentColor = color"
+                          class="w-8 h-8 rounded-full transition-all duration-200 hover:scale-110 flex-shrink-0"
+                          :style="`background:${color}; ${accentColor === color ? 'box-shadow:0 0 0 2px white, 0 0 0 4px '+color : ''}`"
+                          :title="color"></button>
+                </template>
+                <div class="relative w-8 h-8 rounded-full overflow-hidden hover:scale-110 transition-transform cursor-pointer"
+                     :style="`background:${accentColor}`" title="Custom color">
+                  <input type="color" x-model="accentColor" @input="proposal.accentColor = accentColor"
+                         class="absolute inset-0 opacity-0 w-full h-full cursor-pointer" />
+                  <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="2.2">
+                      <path d="M8 1v14M1 8h14"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Logo upload -->
+            <div class="section-card">
+              <p class="section-label mb-4">Company Logo</p>
+              <div x-show="!proposal.logoUrl"
+                   class="logo-upload-area rounded-xl border-2 border-dashed p-6 text-center cursor-pointer"
+                   :class="darkMode ? 'border-white/[0.1]' : 'border-black/[0.1]'"
+                   @click="$refs.logoInput.click()">
+                <svg class="mx-auto mb-2 opacity-25" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                </svg>
+                <p class="text-[13px] opacity-45">Click to upload logo</p>
+                <p class="text-[11px] opacity-25 mt-1">PNG, SVG or JPG · max 2MB</p>
+              </div>
+              <div x-show="proposal.logoUrl" class="flex items-center gap-3">
+                <img :src="proposal.logoUrl" alt="Logo" class="h-12 object-contain rounded-lg" />
+                <button @click="proposal.logoUrl = ''; debouncedPreviewUpdate()"
+                        class="btn-ghost text-[12px] text-red-400">Remove</button>
+              </div>
+              <input type="file" accept="image/*" x-ref="logoInput" class="hidden"
+                     @change="handleLogoUpload($event)" />
+            </div>
+          </div>
+
+        </div><!-- end scrollable -->
+      </div><!-- end left panel -->
+
+      <!-- ═══ RIGHT: Live Preview ═══ -->
+      <div class="flex-1 flex-col overflow-hidden"
+           :class="[
+             darkMode ? 'bg-[#0f0f16]' : 'bg-stone-200/60',
+             mobileTab === 'preview' ? 'flex' : 'hidden sm:flex'
+           ]">
+        <!-- Preview toolbar -->
+        <div class="flex items-center justify-between px-5 py-2.5 border-b flex-shrink-0"
+             :class="darkMode ? 'border-white/[0.05]' : 'border-black/[0.06]'">
+          <p class="text-[10.5px] tracking-[0.12em] uppercase opacity-35 font-medium">Live Preview</p>
+          <div class="flex items-center gap-1">
+            <button @click="previewScale = Math.max(0.45, previewScale - 0.1)"
+                    class="btn-ghost text-[13px] w-7 h-7 justify-center">−</button>
+            <span class="text-[11.5px] opacity-35 w-10 text-center font-mono"
+                  x-text="`${Math.round(previewScale*100)}%`"></span>
+            <button @click="previewScale = Math.min(1.2, previewScale + 0.1)"
+                    class="btn-ghost text-[13px] w-7 h-7 justify-center">+</button>
+          </div>
+        </div>
+        <!-- Preview canvas -->
+        <div class="flex-1 overflow-auto p-6 flex items-start justify-center" id="preview-scroll-container">
+          <div id="proposal-preview-wrapper" class="transition-transform duration-200 origin-top"
+               :style="`transform:scale(${previewScale}); transform-origin:top center; width:${Math.round(800/previewScale)}px`">
+            <div id="proposal-preview" class="proposal-preview"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end two-column -->
+  </div><!-- end builder view -->
+
+  <!-- ══════════════════════════════════════════════
+       SITE FOOTER — Made with love by BlackBirdo.com
+  ══════════════════════════════════════════════ -->
+  <footer x-show="currentView === 'landing'" class="site-footer relative z-10">
+    <span>Made with</span>
+    <span class="site-footer-heart" aria-label="love">♥</span>
+    <span>by</span>
+    <a href="https://blackbirdo.com" target="_blank" rel="noopener noreferrer">BlackBirdo.com</a>
+  </footer>
+
+  <!-- ══════════════════════════════════════════════
+       SMART BUILDER MODAL
+  ══════════════════════════════════════════════ -->
+  <div x-show="showSmartBuilder"
+       class="fixed inset-0 z-50 flex items-center justify-center p-4"
+       x-transition:enter="transition duration-200"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition duration-150"
+       x-transition:leave-end="opacity-0">
+    <div class="absolute inset-0 bg-black/55 backdrop-blur-sm" @click="showSmartBuilder = false"></div>
+    <div class="relative w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl"
+         :class="darkMode ? 'bg-[#111118] border border-white/[0.07]' : 'bg-white border border-black/[0.07]'"
+         x-transition:enter="transition duration-200"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100">
+
+      <!-- Modal header -->
+      <div class="flex items-center justify-between px-6 py-5 border-b"
+           :class="darkMode ? 'border-white/[0.06]' : 'border-black/[0.06]'">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" :style="`background:${accentColor}`">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.8">
+              <path d="M6 1l1.5 3.5L11 6l-3.5 1.5L6 11l-1.5-3.5L1 6l3.5-1.5L6 1z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="font-display text-xl font-semibold">Smart AI Builder</h2>
+            <p class="text-[12px] opacity-40 mt-0.5">Powered by Claude · Proposals in seconds</p>
+          </div>
+        </div>
+        <button @click="showSmartBuilder = false" class="btn-ghost">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 2l12 12M14 2L2 14"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="field-label block mb-2">Paste your project brief or client requirements</label>
+          <textarea x-model="smartBuilderInput" rows="8"
+                    placeholder="e.g. We need a complete rebrand and website for our fintech startup. The website should include a landing page, pricing page, blog, and customer portal. Budget is around $15k and we need it done in 8 weeks. Target audience is small business owners aged 30–50. Brand should feel trustworthy and modern…"
+                    class="field-input resize-none w-full leading-relaxed"
+                    :class="darkMode ? 'dark-input' : 'light-input'"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="field-group">
+            <label class="field-label">Client Name</label>
+            <input type="text" x-model="proposal.client.name" placeholder="Acme Corp"
+                   class="field-input" :class="darkMode ? 'dark-input' : 'light-input'" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Your Name / Company</label>
+            <input type="text" x-model="proposal.sender.name" placeholder="Your Studio"
+                   class="field-input" :class="darkMode ? 'dark-input' : 'light-input'" />
+          </div>
+        </div>
+
+        <!-- AI progress bar -->
+        <div x-show="isGenerating"
+             class="rounded-xl p-4 border"
+             :class="darkMode ? 'border-white/[0.07] bg-white/[0.025]' : 'border-black/[0.06] bg-black/[0.02]'"
+             :style="`border-color:${accentColor}30`">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="flex gap-1">
+              <span class="w-2 h-2 rounded-full animate-bounce" :style="`background:${accentColor};animation-delay:0s`"></span>
+              <span class="w-2 h-2 rounded-full animate-bounce" :style="`background:${accentColor};animation-delay:0.15s`"></span>
+              <span class="w-2 h-2 rounded-full animate-bounce" :style="`background:${accentColor};animation-delay:0.3s`"></span>
+            </div>
+            <span class="text-[13px] opacity-60" x-text="aiStatusMessage"></span>
+          </div>
+          <div class="h-1.5 rounded-full overflow-hidden" :class="darkMode ? 'bg-white/[0.08]' : 'bg-black/[0.07]'">
+            <div class="h-full rounded-full transition-all duration-500"
+                 :style="`background:${accentColor};width:${aiProgress}%`"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="flex items-center justify-between px-6 py-4 border-t"
+           :class="darkMode ? 'border-white/[0.06]' : 'border-black/[0.06]'">
+        <p class="text-[11.5px] opacity-35 max-w-xs">Uses Claude API when available. Intelligent offline fallback always works — no key needed.</p>
+        <div class="flex gap-2.5">
+          <button @click="showSmartBuilder = false" class="btn-ghost text-[13px]">Cancel</button>
+          <button @click="runSmartBuilder()"
+                  :disabled="isGenerating || !smartBuilderInput.trim()"
+                  class="btn-primary text-[13.5px] gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                  :style="`background:${accentColor}`">
+            <span x-text="isGenerating ? 'Generating…' : 'Generate Proposal'"></span>
+            <svg x-show="!isGenerating" width="14" height="14" viewBox="0 0 16 16" fill="none"
+                 stroke="currentColor" stroke-width="2.2">
+              <path d="M3 8h10M9 4l4 4-4 4"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SAVED PROPOSALS MODAL
+  ══════════════════════════════════════════════ -->
+  <div x-show="showSavedModal"
+       class="fixed inset-0 z-50 flex items-center justify-center p-4"
+       x-transition:enter="transition duration-200"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition duration-150"
+       x-transition:leave-end="opacity-0">
+    <div class="absolute inset-0 bg-black/55 backdrop-blur-sm" @click="showSavedModal = false"></div>
+    <div class="relative w-full max-w-md rounded-2xl overflow-hidden shadow-2xl"
+         :class="darkMode ? 'bg-[#111118] border border-white/[0.07]' : 'bg-white border border-black/[0.07]'"
+         x-transition:enter="transition duration-200"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100">
+      <div class="flex items-center justify-between px-6 py-5 border-b"
+           :class="darkMode ? 'border-white/[0.06]' : 'border-black/[0.06]'">
+        <h2 class="font-display text-xl font-semibold">Saved Proposals</h2>
+        <button @click="showSavedModal = false" class="btn-ghost">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 2l12 12M14 2L2 14"/>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4 max-h-96 overflow-y-auto space-y-2 scrollbar-thin">
+        <div x-show="savedProposals.length === 0"
+             class="text-center py-12 opacity-35 text-[13.5px]">
+          No saved proposals yet.
+        </div>
+        <template x-for="(saved, idx) in savedProposals" :key="idx">
+          <div class="flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all"
+               :class="darkMode ? 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]' : 'border-black/[0.06] bg-black/[0.01] hover:bg-black/[0.04]'">
+            <div @click="loadProposal(idx); showSavedModal=false" class="flex-1 min-w-0 pr-3">
+              <p class="font-medium text-[13.5px] truncate" x-text="saved.title || 'Untitled Proposal'"></p>
+              <p class="text-[11.5px] opacity-40 mt-0.5"
+                 x-text="(saved.client && saved.client.name ? 'For ' + saved.client.name + ' · ' : '') + new Date(saved.savedAt).toLocaleDateString()"></p>
+            </div>
+            <button @click.stop="deleteSaved(idx)"
+                    class="btn-ghost text-[12px] text-red-400 flex-shrink-0">Delete</button>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div x-show="toast.show"
+       x-transition:enter="transition ease-out duration-250"
+       x-transition:enter-start="opacity-0 translate-y-3"
+       x-transition:enter-end="opacity-100 translate-y-0"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       class="fixed bottom-6 right-6 z-[100] px-5 py-3 rounded-xl text-[13.5px] font-medium text-white shadow-xl flex items-center gap-3"
+       :style="`background:${accentColor};box-shadow:0 8px 28px ${accentColor}50`">
+    <span x-text="toast.message"></span>
+  </div>
+
+  <!-- JS modules — order matters -->
+  <script src="js/utils.js"></script>
+  <script src="js/proposal-data.js"></script>
+  <script src="js/pricing-packages.js"></script>
+  <script src="js/preview-renderer.js"></script>
+  <script src="js/smart-builder.js"></script>
+  <script src="js/pdf-export.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

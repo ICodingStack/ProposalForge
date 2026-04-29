@@ -1,0 +1,40 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local environment overrides (if you ever add a build step)
+.env
+.env.local
+.env.*.local
+
+# Node (if a build step is added later)
+node_modules/
+dist/
+.cache/
+
+# OS generated
+.Spotlight-V100
+.Trashes
