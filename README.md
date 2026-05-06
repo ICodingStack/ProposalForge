@@ -61,8 +61,8 @@ Save up to 20 proposals locally using localStorage. No account needed — your d
 
 ```bash
 # Clone the repository
-git clone https://github.com/proposalforge/proposalforge.git
-cd proposalforge
+git clone https://github.com/ICodingStack/ProposalForge.git
+cd ProposalForge
 
 # Open in browser (no build step needed)
 open index.html
@@ -175,7 +175,7 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 
 ```bash
 # Fork and clone
-git clone https://github.com/yourusername/proposalforge.git
+git clone https://github.com/ICodingStack/ProposalForge.git
 
 # Create a feature branch
 git checkout -b feature/amazing-new-template
@@ -191,7 +191,4 @@ MIT — see [LICENSE](LICENSE) for details.
 
 ---
 
-<div align="center">
-  <strong>ProposalForge</strong> · Built with care for freelancers everywhere<br>
-  <em>"Proposals That Win Clients"</em>
-</div>
+**Made with love ❤️ by [BlackBirdo](https://blackbirdo.com)**
